@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>AutoSellerPlusByLilly</AssemblyName>
+    <RootNamespace>AutoSellerPlusByLilly</RootNamespace>
+    <OutputPath>..\1.7\Assemblies\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <GameRoot>$(MSBuildThisFileDirectory)..\..\..\</GameRoot>
+    <WorkshopRoot>$(GameRoot)..\..\workshop\content\294100\</WorkshopRoot>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(GameRoot)Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityStubs">
+      <HintPath>$(GameRoot)UnityStubs.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(WorkshopRoot)2009463077\1.7\Assemblies\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="RWAutoSell">
+      <HintPath>$(WorkshopRoot)1440321094\1.7\Assemblies\RWAutoSell.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="RWASFilterLib">
+      <HintPath>$(WorkshopRoot)1440321094\1.7\Assemblies\RWASFilterLib.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="RWASWidgets">
+      <HintPath>$(WorkshopRoot)1440321094\1.7\Assemblies\RWASWidgets.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+</Project>

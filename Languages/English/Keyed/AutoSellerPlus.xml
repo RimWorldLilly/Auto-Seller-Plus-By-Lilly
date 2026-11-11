@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <AutoSellerPlus_SaveRules>Save rules</AutoSellerPlus_SaveRules>
+  <AutoSellerPlus_LoadRules>Load rules</AutoSellerPlus_LoadRules>
+  <AutoSellerPlus_SaveDialogTitle>Save rule preset</AutoSellerPlus_SaveDialogTitle>
+  <AutoSellerPlus_PresetName>Preset name</AutoSellerPlus_PresetName>
+  <AutoSellerPlus_Save>Save</AutoSellerPlus_Save>
+  <AutoSellerPlus_Cancel>Cancel</AutoSellerPlus_Cancel>
+  <AutoSellerPlus_LoadDialogTitle>Load rule preset</AutoSellerPlus_LoadDialogTitle>
+  <AutoSellerPlus_NoPresets>No saved rule presets.</AutoSellerPlus_NoPresets>
+  <AutoSellerPlus_InvalidName>Enter a valid preset name without path separators.</AutoSellerPlus_InvalidName>
+  <AutoSellerPlus_OverwriteTitle>Overwrite preset?</AutoSellerPlus_OverwriteTitle>
+  <AutoSellerPlus_OverwriteConfirm>A preset named "{0}" already exists. Replace it?</AutoSellerPlus_OverwriteConfirm>
+  <AutoSellerPlus_Saved>Rule preset saved: {0}</AutoSellerPlus_Saved>
+  <AutoSellerPlus_Loaded>Rules appended from preset: {0}</AutoSellerPlus_Loaded>
+  <AutoSellerPlus_SaveFailed>Could not save the rule preset. See the log for details.</AutoSellerPlus_SaveFailed>
+  <AutoSellerPlus_LoadFailed>Could not load the rule preset. See the log for details.</AutoSellerPlus_LoadFailed>
+  <AutoSellerPlus_ComponentUnavailable>The active Auto Seller rule list is unavailable.</AutoSellerPlus_ComponentUnavailable>
+  <AutoSellerPlus_InvalidRule>Preset contains a rule that is incompatible with this Auto Seller rule list.</AutoSellerPlus_InvalidRule>
+</LanguageData>

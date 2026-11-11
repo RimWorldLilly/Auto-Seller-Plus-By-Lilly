@@ -1,0 +1,368 @@
+using System.Reflection;
+using HarmonyLib;
+using RimWorld;
+using RWASFilterLib;
+using RWAutoSell;
+using UnityEngine;
+using Verse;
+
+namespace AutoSellerPlusByLilly;
+
+public sealed class AutoSellerPlusMod : Mod
+{
+    public AutoSellerPlusMod(ModContentPack content) : base(content)
+    {
+        new Harmony("lilly.autosellerplus").PatchAll(typeof(AutoSellerPlusMod).Assembly);
+    }
+}
+
+[HarmonyPatch(typeof(MainTabWindow_AutoSell), nameof(MainTabWindow_AutoSell.TopButtonBar))]
+internal static class AutoSellerPlusButtonPatch
+{
+    private static readonly FieldInfo MainListField =
+        typeof(MainTabWindow_AutoSell).GetField("MainList", BindingFlags.Instance | BindingFlags.NonPublic)
+        ?? throw new MissingFieldException(typeof(MainTabWindow_AutoSell).FullName, "MainList");
+
+    private static readonly PropertyInfo RootCompProperty =
+        typeof(ASMainTabList).GetProperty("RootComp", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+        ?? throw new MissingMemberException(typeof(ASMainTabList).FullName, "RootComp");
+
+    [HarmonyPostfix]
+    private static void Postfix(MainTabWindow_AutoSell __instance, Rect inRect)
+    {
+        if (MainListField.GetValue(__instance) is not { } mainList ||
+            RootCompProperty.GetValue(mainList) is not IRuleComp comp)
+        {
+            return;
+        }
+
+        const float buttonWidth = 120f;
+        const float gap = 8f;
+        float buttonHeight = MainTabWindow_AutoSell.ButtonSize.y;
+        float firstX = inRect.x + 10f + MainTabWindow_AutoSell.ButtonSize.x + 10f;
+        var saveRect = new Rect(firstX, inRect.y, buttonWidth, buttonHeight);
+        var loadRect = new Rect(firstX + buttonWidth + gap, inRect.y, buttonWidth, buttonHeight);
+
+        if (Widgets.ButtonText(saveRect, Translator.Translate("AutoSellerPlus_SaveRules")))
+        {
+            Find.WindowStack.Add(new RulePresetSaveDialog(comp));
+        }
+
+        if (Widgets.ButtonText(loadRect, Translator.Translate("AutoSellerPlus_LoadRules")))
+        {
+            try
+            {
+                Find.WindowStack.Add(new RulePresetLoadDialog(comp));
+            }
+            catch (Exception exception)
+            {
+                Log.Error($"Auto Seller Plus could not open the preset list: {exception}");
+                Messages.Message(
+                    Translator.Translate("AutoSellerPlus_LoadFailed").ToString(),
+                    MessageTypeDefOf.RejectInput);
+            }
+        }
+    }
+}
+
+public sealed class RulePreset : IExposable
+{
+    public List<ASRule> Rules = new();
+
+    public void ExposeData()
+    {
+        Scribe_Collections.Look(ref Rules, "rules", false, LookMode.Deep);
+    }
+}
+
+internal static class RulePresetStorage
+{
+    private const string PresetFolderName = "Auto Seller Plus By Lilly";
+    private const string DocumentRoot = "AutoSellerPlusPreset";
+
+    public static string PresetDirectory =>
+        Path.Combine(GenFilePaths.ConfigFolderPath, PresetFolderName, "Presets");
+
+    public static FileInfo[] GetPresetFiles()
+    {
+        Directory.CreateDirectory(PresetDirectory);
+        return new DirectoryInfo(PresetDirectory)
+            .GetFiles("*.xml", SearchOption.TopDirectoryOnly)
+            .OrderBy(file => file.Name, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
+    public static bool TryGetPresetPath(string rawName, out string presetName, out string path)
+    {
+        presetName = rawName.Trim();
+        if (presetName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
+        {
+            presetName = presetName[..^4];
+        }
+
+        path = string.Empty;
+        if (string.IsNullOrWhiteSpace(presetName) ||
+            presetName is "." or ".." ||
+            presetName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 ||
+            presetName.Contains('/') ||
+            presetName.Contains('\\'))
+        {
+            return false;
+        }
+
+        path = Path.Combine(PresetDirectory, presetName + ".xml");
+        return true;
+    }
+
+    public static bool Save(string path, IRuleComp comp, string displayName)
+    {
+        string temporaryPath = path + ".tmp";
+        bool scribeStarted = false;
+
+        try
+        {
+            var preset = new RulePreset();
+            for (int index = 0; index < comp.Count(); index++)
+            {
+                if (comp.GetRuleAt(index) is not ASRule rule)
+                {
+                    Messages.Message(
+                        Translator.Translate("AutoSellerPlus_InvalidRule").ToString(),
+                        MessageTypeDefOf.RejectInput);
+                    return false;
+                }
+
+                preset.Rules.Add(rule);
+            }
+
+            Directory.CreateDirectory(PresetDirectory);
+            Scribe.saver.InitSaving(temporaryPath, DocumentRoot);
+            scribeStarted = true;
+            Scribe_Deep.Look(ref preset, "preset");
+            Scribe.saver.FinalizeSaving();
+            scribeStarted = false;
+
+            File.Move(temporaryPath, path, true);
+            Messages.Message(
+                string.Format(Translator.Translate("AutoSellerPlus_Saved").ToString(), displayName),
+                MessageTypeDefOf.PositiveEvent);
+            return true;
+        }
+        catch (Exception exception)
+        {
+            if (scribeStarted)
+            {
+                Scribe.ForceStop();
+            }
+
+            TryDeleteTemporaryFile(temporaryPath);
+            Log.Error($"Auto Seller Plus could not save preset '{displayName}': {exception}");
+            Messages.Message(
+                Translator.Translate("AutoSellerPlus_SaveFailed").ToString(),
+                MessageTypeDefOf.RejectInput);
+            return false;
+        }
+    }
+
+    public static bool Load(string path, IRuleComp comp, string displayName)
+    {
+        bool scribeStarted = false;
+        try
+        {
+            RulePreset? preset = null;
+            Scribe.loader.InitLoading(path);
+            scribeStarted = true;
+            Scribe_Deep.Look(ref preset, "preset");
+            Scribe.loader.FinalizeLoading();
+            scribeStarted = false;
+
+            if (preset?.Rules is null)
+            {
+                throw new InvalidDataException("Preset did not contain a rule list.");
+            }
+
+            if (preset.Rules.Any(rule => rule is null))
+            {
+                throw new InvalidDataException("Preset contains a null rule.");
+            }
+
+            int originalCount = comp.Count();
+            try
+            {
+                foreach (ASRule rule in preset.Rules)
+                {
+                    comp.Add(rule);
+                }
+            }
+            catch
+            {
+                for (int index = comp.Count() - 1; index >= originalCount; index--)
+                {
+                    comp.RemoveAt(index);
+                }
+
+                throw;
+            }
+
+            Messages.Message(
+                string.Format(Translator.Translate("AutoSellerPlus_Loaded").ToString(), displayName),
+                MessageTypeDefOf.PositiveEvent);
+            return true;
+        }
+        catch (Exception exception)
+        {
+            if (scribeStarted)
+            {
+                Scribe.ForceStop();
+            }
+
+            Log.Error($"Auto Seller Plus could not load preset '{displayName}': {exception}");
+            Messages.Message(
+                Translator.Translate("AutoSellerPlus_LoadFailed").ToString(),
+                MessageTypeDefOf.RejectInput);
+            return false;
+        }
+    }
+
+    private static void TryDeleteTemporaryFile(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+        catch (IOException exception)
+        {
+            Log.Error($"Auto Seller Plus could not remove temporary preset file '{path}': {exception}");
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            Log.Error($"Auto Seller Plus could not remove temporary preset file '{path}': {exception}");
+        }
+    }
+}
+
+internal sealed class RulePresetSaveDialog : Window
+{
+    private readonly IRuleComp comp;
+    private string presetName = string.Empty;
+
+    public RulePresetSaveDialog(IRuleComp comp)
+    {
+        this.comp = comp;
+        forcePause = false;
+        absorbInputAroundWindow = true;
+        doCloseX = true;
+    }
+
+    public override Vector2 InitialSize => new(500f, 170f);
+
+    public override void DoWindowContents(Rect inRect)
+    {
+        Widgets.Label(
+            new Rect(0f, 0f, inRect.width, 30f),
+            Translator.Translate("AutoSellerPlus_PresetName"));
+        presetName = Widgets.TextField(new Rect(0f, 36f, inRect.width, 35f), presetName);
+
+        float buttonWidth = 120f;
+        float buttonY = inRect.height - 40f;
+        if (Widgets.ButtonText(
+                new Rect(inRect.width - buttonWidth * 2f - 10f, buttonY, buttonWidth, 35f),
+                Translator.Translate("AutoSellerPlus_Cancel")))
+        {
+            Close();
+        }
+
+        if (!Widgets.ButtonText(
+                new Rect(inRect.width - buttonWidth, buttonY, buttonWidth, 35f),
+                Translator.Translate("AutoSellerPlus_Save")))
+        {
+            return;
+        }
+
+        if (!RulePresetStorage.TryGetPresetPath(presetName, out string normalizedName, out string path))
+        {
+            Messages.Message(
+                Translator.Translate("AutoSellerPlus_InvalidName").ToString(),
+                MessageTypeDefOf.RejectInput);
+            return;
+        }
+
+        if (File.Exists(path))
+        {
+            string confirmation = string.Format(
+                Translator.Translate("AutoSellerPlus_OverwriteConfirm").ToString(),
+                normalizedName);
+            Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
+                confirmation,
+                () => SaveAndClose(path, normalizedName),
+                true,
+                Translator.Translate("AutoSellerPlus_OverwriteTitle").ToString()));
+            return;
+        }
+
+        SaveAndClose(path, normalizedName);
+    }
+
+    private void SaveAndClose(string path, string displayName)
+    {
+        if (RulePresetStorage.Save(path, comp, displayName))
+        {
+            Close();
+        }
+    }
+}
+
+internal sealed class RulePresetLoadDialog : Window
+{
+    private readonly IRuleComp comp;
+    private readonly FileInfo[] presetFiles;
+    private Vector2 scrollPosition;
+
+    public RulePresetLoadDialog(IRuleComp comp)
+    {
+        this.comp = comp;
+        presetFiles = RulePresetStorage.GetPresetFiles();
+        forcePause = false;
+        absorbInputAroundWindow = true;
+        doCloseX = true;
+    }
+
+    public override Vector2 InitialSize => new(520f, 500f);
+
+    public override void DoWindowContents(Rect inRect)
+    {
+        Widgets.Label(
+            new Rect(0f, 0f, inRect.width, 30f),
+            Translator.Translate("AutoSellerPlus_LoadDialogTitle"));
+
+        if (presetFiles.Length == 0)
+        {
+            Widgets.Label(
+                new Rect(0f, 45f, inRect.width, 30f),
+                Translator.Translate("AutoSellerPlus_NoPresets"));
+            return;
+        }
+
+        var listRect = new Rect(0f, 40f, inRect.width, inRect.height - 40f);
+        float rowHeight = 38f;
+        var viewRect = new Rect(0f, 0f, listRect.width - 16f, presetFiles.Length * rowHeight);
+        Widgets.BeginScrollView(listRect, ref scrollPosition, viewRect);
+
+        for (int index = 0; index < presetFiles.Length; index++)
+        {
+            FileInfo file = presetFiles[index];
+            var rowRect = new Rect(0f, index * rowHeight, viewRect.width, rowHeight - 4f);
+            if (Widgets.ButtonText(rowRect, Path.GetFileNameWithoutExtension(file.Name)) &&
+                RulePresetStorage.Load(file.FullName, comp, Path.GetFileNameWithoutExtension(file.Name)))
+            {
+                Close();
+                break;
+            }
+        }
+
+        Widgets.EndScrollView();
+    }
+}
