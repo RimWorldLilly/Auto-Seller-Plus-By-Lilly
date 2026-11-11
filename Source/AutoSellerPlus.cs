@@ -204,6 +204,7 @@ internal static class RulePresetStorage
                 throw;
             }
 
+            ASLibMod.GuiRefresh = true;
             Messages.Message(
                 string.Format(Translator.Translate("AutoSellerPlus_Loaded").ToString(), displayName),
                 MessageTypeDefOf.PositiveEvent);
