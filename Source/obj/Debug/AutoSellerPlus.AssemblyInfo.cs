@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AutoSellerPlusByLilly")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+974dcea1bd16f650c917f744eb3c0e736e37e72a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4424a645595dbaaf1d9ecdeccdd7dcb2bede82dc")]
 [assembly: System.Reflection.AssemblyProductAttribute("AutoSellerPlusByLilly")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AutoSellerPlusByLilly")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
