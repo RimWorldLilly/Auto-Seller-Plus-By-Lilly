@@ -164,7 +164,7 @@ internal static class RulePresetStorage
         }
     }
 
-    public static bool Load(string path, IRuleComp comp, string displayName)
+    public static bool Load(string path, IRuleComp comp, string displayName, bool overwriteExistingRules)
     {
         bool scribeStarted = false;
         try
@@ -186,9 +186,28 @@ internal static class RulePresetStorage
                 throw new InvalidDataException("Preset contains a null rule.");
             }
 
+            var originalRules = new List<ASRule>();
             int originalCount = comp.Count();
+            for (int index = 0; index < originalCount; index++)
+            {
+                if (comp.GetRuleAt(index) is not ASRule existingRule)
+                {
+                    throw new InvalidDataException("The current rule list contains an incompatible rule.");
+                }
+
+                originalRules.Add(existingRule);
+            }
+
             try
             {
+                if (overwriteExistingRules)
+                {
+                    for (int index = comp.Count() - 1; index >= 0; index--)
+                    {
+                        comp.RemoveAt(index);
+                    }
+                }
+
                 foreach (ASRule rule in preset.Rules)
                 {
                     comp.Add(rule);
@@ -196,9 +215,24 @@ internal static class RulePresetStorage
             }
             catch
             {
-                for (int index = comp.Count() - 1; index >= originalCount; index--)
+                if (overwriteExistingRules)
                 {
-                    comp.RemoveAt(index);
+                    for (int index = comp.Count() - 1; index >= 0; index--)
+                    {
+                        comp.RemoveAt(index);
+                    }
+
+                    foreach (ASRule originalRule in originalRules)
+                    {
+                        comp.Add(originalRule);
+                    }
+                }
+                else
+                {
+                    for (int index = comp.Count() - 1; index >= originalCount; index--)
+                    {
+                        comp.RemoveAt(index);
+                    }
                 }
 
                 throw;
@@ -206,7 +240,11 @@ internal static class RulePresetStorage
 
             ASLibMod.GuiRefresh = true;
             Messages.Message(
-                string.Format(Translator.Translate("AutoSellerPlus_Loaded").ToString(), displayName),
+                string.Format(
+                    Translator.Translate(overwriteExistingRules
+                        ? "AutoSellerPlus_LoadedOverwrite"
+                        : "AutoSellerPlus_Loaded").ToString(),
+                    displayName),
                 MessageTypeDefOf.PositiveEvent);
             return true;
         }
@@ -321,6 +359,7 @@ internal sealed class RulePresetLoadDialog : Window
     private readonly IRuleComp comp;
     private readonly FileInfo[] presetFiles;
     private Vector2 scrollPosition;
+    private bool overwriteExistingRules = true;
 
     public RulePresetLoadDialog(IRuleComp comp)
     {
@@ -339,15 +378,20 @@ internal sealed class RulePresetLoadDialog : Window
             new Rect(0f, 0f, inRect.width, 30f),
             Translator.Translate("AutoSellerPlus_LoadDialogTitle"));
 
+        Widgets.CheckboxLabeled(
+            new Rect(0f, 34f, inRect.width, 30f),
+            Translator.Translate("AutoSellerPlus_OverwriteExistingRules").ToString(),
+            ref overwriteExistingRules);
+
         if (presetFiles.Length == 0)
         {
             Widgets.Label(
-                new Rect(0f, 45f, inRect.width, 30f),
+                new Rect(0f, 72f, inRect.width, 30f),
                 Translator.Translate("AutoSellerPlus_NoPresets"));
             return;
         }
 
-        var listRect = new Rect(0f, 40f, inRect.width, inRect.height - 40f);
+        var listRect = new Rect(0f, 70f, inRect.width, inRect.height - 70f);
         float rowHeight = 38f;
         var viewRect = new Rect(0f, 0f, listRect.width - 16f, presetFiles.Length * rowHeight);
         Widgets.BeginScrollView(listRect, ref scrollPosition, viewRect);
@@ -357,7 +401,11 @@ internal sealed class RulePresetLoadDialog : Window
             FileInfo file = presetFiles[index];
             var rowRect = new Rect(0f, index * rowHeight, viewRect.width, rowHeight - 4f);
             if (Widgets.ButtonText(rowRect, Path.GetFileNameWithoutExtension(file.Name)) &&
-                RulePresetStorage.Load(file.FullName, comp, Path.GetFileNameWithoutExtension(file.Name)))
+                RulePresetStorage.Load(
+                    file.FullName,
+                    comp,
+                    Path.GetFileNameWithoutExtension(file.Name),
+                    overwriteExistingRules))
             {
                 Close();
                 break;
