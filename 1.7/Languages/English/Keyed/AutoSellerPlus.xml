@@ -13,6 +13,8 @@
   <AutoSellerPlus_OverwriteConfirm>A preset named "{0}" already exists. Replace it?</AutoSellerPlus_OverwriteConfirm>
   <AutoSellerPlus_Saved>Rule preset saved: {0}</AutoSellerPlus_Saved>
   <AutoSellerPlus_Loaded>Rules appended from preset: {0}</AutoSellerPlus_Loaded>
+  <AutoSellerPlus_LoadedOverwrite>Rules replaced with preset: {0}</AutoSellerPlus_LoadedOverwrite>
+  <AutoSellerPlus_OverwriteExistingRules>Replace existing rules when loading (unchecked: append)</AutoSellerPlus_OverwriteExistingRules>
   <AutoSellerPlus_SaveFailed>Could not save the rule preset. See the log for details.</AutoSellerPlus_SaveFailed>
   <AutoSellerPlus_LoadFailed>Could not load the rule preset. See the log for details.</AutoSellerPlus_LoadFailed>
   <AutoSellerPlus_ComponentUnavailable>The active Auto Seller rule list is unavailable.</AutoSellerPlus_ComponentUnavailable>
