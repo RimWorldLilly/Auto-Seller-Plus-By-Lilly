@@ -1,9 +1,0 @@
-Y:\SteamLibrary\steamapps\common\RimWorld\Mods\Auto Seller Plus By Lilly\1.7\Assemblies\AutoSellerPlusByLilly.dll
-Y:\SteamLibrary\steamapps\common\RimWorld\Mods\Auto Seller Plus By Lilly\Source\obj\Release\AutoSellerPlus.csproj.AssemblyReference.cache
-Y:\SteamLibrary\steamapps\common\RimWorld\Mods\Auto Seller Plus By Lilly\Source\obj\Release\AutoSellerPlus.GeneratedMSBuildEditorConfig.editorconfig
-Y:\SteamLibrary\steamapps\common\RimWorld\Mods\Auto Seller Plus By Lilly\Source\obj\Release\AutoSellerPlus.AssemblyInfoInputs.cache
-Y:\SteamLibrary\steamapps\common\RimWorld\Mods\Auto Seller Plus By Lilly\Source\obj\Release\AutoSellerPlus.AssemblyInfo.cs
-Y:\SteamLibrary\steamapps\common\RimWorld\Mods\Auto Seller Plus By Lilly\Source\obj\Release\AutoSellerPlus.csproj.CoreCompileInputs.cache
-Y:\SteamLibrary\steamapps\common\RimWorld\Mods\Auto Seller Plus By Lilly\Source\obj\Release\AutoSellerPlusByLilly.dll
-Y:\SteamLibrary\steamapps\common\RimWorld\Mods\Auto Seller Plus By Lilly\Source\obj\Release\refint\AutoSellerPlusByLilly.dll
-Y:\SteamLibrary\steamapps\common\RimWorld\Mods\Auto Seller Plus By Lilly\Source\obj\Release\ref\AutoSellerPlusByLilly.dll
