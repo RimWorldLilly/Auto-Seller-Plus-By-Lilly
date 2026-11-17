@@ -355,7 +355,7 @@ internal sealed class RulePresetSaveDialog : Window
                         new Rect(overwriteX, rowRect.y, 86f, rowRect.height),
                         Translator.Translate("AutoSellerPlus_Overwrite")))
                 {
-                    string path = file.FullName;
+                    string presetFilePath = file.FullName;
                     string confirmation = string.Format(
                         Translator.Translate("AutoSellerPlus_OverwriteConfirm").ToString(),
                         displayName);
@@ -363,7 +363,7 @@ internal sealed class RulePresetSaveDialog : Window
                         confirmation,
                         () =>
                         {
-                            if (RulePresetStorage.Save(path, comp, displayName))
+                            if (RulePresetStorage.Save(presetFilePath, comp, displayName))
                             {
                                 RefreshPresetFiles();
                             }
@@ -376,13 +376,13 @@ internal sealed class RulePresetSaveDialog : Window
                         new Rect(deleteX, rowRect.y, 70f, rowRect.height),
                         Translator.Translate("AutoSellerPlus_Delete")))
                 {
-                    string path = file.FullName;
+                    string presetFilePath = file.FullName;
                     string confirmation = string.Format(
                         Translator.Translate("AutoSellerPlus_DeleteConfirm").ToString(),
                         displayName);
                     Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
                         confirmation,
-                        () => DeletePreset(path, displayName),
+                        () => DeletePreset(presetFilePath, displayName),
                         true,
                         Translator.Translate("AutoSellerPlus_DeleteTitle").ToString()));
                 }
