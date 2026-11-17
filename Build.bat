@@ -7,7 +7,7 @@ set "PROJECT=%~dp0Source\AutoSellerPlus.csproj"
 where dotnet >nul 2>nul
 if errorlevel 1 (
     echo ERROR: .NET SDK was not found. Install the .NET SDK and try again.
-    pause
+    @REM  pause
     exit /b 1
 )
 
@@ -22,5 +22,5 @@ if not "%BUILD_EXIT_CODE%"=="0" (
     echo Build succeeded. DLL: "%MOD_DIR%1.7\Assemblies\AutoSellerPlusByLilly.dll"
 )
 
-pause
+@REM  pause
 exit /b %BUILD_EXIT_CODE%
