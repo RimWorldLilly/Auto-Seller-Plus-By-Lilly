@@ -19,4 +19,10 @@
   <AutoSellerPlus_LoadFailed>Could not load the rule preset. See the log for details.</AutoSellerPlus_LoadFailed>
   <AutoSellerPlus_ComponentUnavailable>The active Auto Seller rule list is unavailable.</AutoSellerPlus_ComponentUnavailable>
   <AutoSellerPlus_InvalidRule>Preset contains a rule that is incompatible with this Auto Seller rule list.</AutoSellerPlus_InvalidRule>
+  <AutoSellerPlus_SavedPresets>Saved presets</AutoSellerPlus_SavedPresets>
+  <AutoSellerPlus_Overwrite>Overwrite</AutoSellerPlus_Overwrite>
+  <AutoSellerPlus_Delete>Delete</AutoSellerPlus_Delete>
+  <AutoSellerPlus_DeleteTitle>Delete preset?</AutoSellerPlus_DeleteTitle>
+  <AutoSellerPlus_DeleteConfirm>Delete the preset "{0}"? This cannot be undone.</AutoSellerPlus_DeleteConfirm>
+  <AutoSellerPlus_DeleteFailed>Could not delete the preset. See the log for details.</AutoSellerPlus_DeleteFailed>
 </LanguageData>
