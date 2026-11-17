@@ -88,7 +88,8 @@ internal static class RulePresetStorage
         Directory.CreateDirectory(PresetDirectory);
         return new DirectoryInfo(PresetDirectory)
             .GetFiles("*.xml", SearchOption.TopDirectoryOnly)
-            .OrderBy(file => file.Name, StringComparer.OrdinalIgnoreCase)
+            .OrderByDescending(file => file.LastWriteTimeUtc)
+            .ThenBy(file => file.Name, StringComparer.OrdinalIgnoreCase)
             .ToArray();
     }
 
@@ -287,23 +288,108 @@ internal sealed class RulePresetSaveDialog : Window
 {
     private readonly IRuleComp comp;
     private string presetName = string.Empty;
+    private FileInfo[] presetFiles;
+    private Vector2 scrollPosition;
+    private bool focusNameOnNextDraw = true;
 
     public RulePresetSaveDialog(IRuleComp comp)
     {
         this.comp = comp;
+        presetFiles = RulePresetStorage.GetPresetFiles();
         forcePause = false;
         absorbInputAroundWindow = true;
         doCloseX = true;
     }
 
-    public override Vector2 InitialSize => new(500f, 170f);
+    public override Vector2 InitialSize => new(680f, 560f);
 
     public override void DoWindowContents(Rect inRect)
     {
         Widgets.Label(
-            new Rect(0f, 0f, inRect.width, 30f),
+            new Rect(0f, 0f, inRect.width, 28f),
             Translator.Translate("AutoSellerPlus_PresetName"));
-        presetName = Widgets.TextField(new Rect(0f, 36f, inRect.width, 35f), presetName);
+
+        const string presetNameControl = "AutoSellerPlusPresetName";
+        GUI.SetNextControlName(presetNameControl);
+        presetName = Widgets.TextField(new Rect(0f, 32f, inRect.width, 34f), presetName);
+        if (focusNameOnNextDraw)
+        {
+            GUI.FocusControl(presetNameControl);
+            focusNameOnNextDraw = false;
+        }
+
+        Widgets.Label(
+            new Rect(0f, 72f, inRect.width, 28f),
+            Translator.Translate("AutoSellerPlus_SavedPresets"));
+
+        var listRect = new Rect(0f, 102f, inRect.width, inRect.height - 150f);
+        if (presetFiles.Length == 0)
+        {
+            Widgets.Label(
+                new Rect(0f, 108f, inRect.width, 30f),
+                Translator.Translate("AutoSellerPlus_NoPresets"));
+        }
+        else
+        {
+            const float rowHeight = 42f;
+            var viewRect = new Rect(0f, 0f, listRect.width - 16f, presetFiles.Length * rowHeight);
+            Widgets.BeginScrollView(listRect, ref scrollPosition, viewRect);
+
+            for (int index = 0; index < presetFiles.Length; index++)
+            {
+                FileInfo file = presetFiles[index];
+                string displayName = Path.GetFileNameWithoutExtension(file.Name);
+                var rowRect = new Rect(0f, index * rowHeight, viewRect.width, rowHeight - 4f);
+                float deleteX = rowRect.width - 76f;
+                float overwriteX = deleteX - 94f;
+                float dateX = overwriteX - 142f;
+
+                Widgets.Label(
+                    new Rect(8f, rowRect.y, dateX - 12f, rowRect.height),
+                    displayName);
+                Widgets.Label(
+                    new Rect(dateX, rowRect.y, 136f, rowRect.height),
+                    file.LastWriteTime.ToString("yyyy-MM-dd HH:mm"));
+
+                if (Widgets.ButtonText(
+                        new Rect(overwriteX, rowRect.y, 86f, rowRect.height),
+                        Translator.Translate("AutoSellerPlus_Overwrite")))
+                {
+                    string path = file.FullName;
+                    string confirmation = string.Format(
+                        Translator.Translate("AutoSellerPlus_OverwriteConfirm").ToString(),
+                        displayName);
+                    Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
+                        confirmation,
+                        () =>
+                        {
+                            if (RulePresetStorage.Save(path, comp, displayName))
+                            {
+                                RefreshPresetFiles();
+                            }
+                        },
+                        true,
+                        Translator.Translate("AutoSellerPlus_OverwriteTitle").ToString()));
+                }
+
+                if (Widgets.ButtonText(
+                        new Rect(deleteX, rowRect.y, 70f, rowRect.height),
+                        Translator.Translate("AutoSellerPlus_Delete")))
+                {
+                    string path = file.FullName;
+                    string confirmation = string.Format(
+                        Translator.Translate("AutoSellerPlus_DeleteConfirm").ToString(),
+                        displayName);
+                    Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
+                        confirmation,
+                        () => DeletePreset(path, displayName),
+                        true,
+                        Translator.Translate("AutoSellerPlus_DeleteTitle").ToString()));
+                }
+            }
+
+            Widgets.EndScrollView();
+        }
 
         float buttonWidth = 120f;
         float buttonY = inRect.height - 40f;
@@ -336,20 +422,49 @@ internal sealed class RulePresetSaveDialog : Window
                 normalizedName);
             Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
                 confirmation,
-                () => SaveAndClose(path, normalizedName),
+                () =>
+                {
+                    if (RulePresetStorage.Save(path, comp, normalizedName))
+                    {
+                        RefreshPresetFiles();
+                    }
+                },
                 true,
                 Translator.Translate("AutoSellerPlus_OverwriteTitle").ToString()));
             return;
         }
 
-        SaveAndClose(path, normalizedName);
+        if (RulePresetStorage.Save(path, comp, normalizedName))
+        {
+            RefreshPresetFiles();
+            presetName = string.Empty;
+            GUI.FocusControl(presetNameControl);
+        }
     }
 
-    private void SaveAndClose(string path, string displayName)
+    private void RefreshPresetFiles()
     {
-        if (RulePresetStorage.Save(path, comp, displayName))
+        presetFiles = RulePresetStorage.GetPresetFiles();
+        scrollPosition = Vector2.zero;
+    }
+
+    private void DeletePreset(string path, string displayName)
+    {
+        try
         {
-            Close();
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+
+            RefreshPresetFiles();
+        }
+        catch (Exception exception)
+        {
+            Log.Error($"Auto Seller Plus could not delete preset '{displayName}': {exception}");
+            Messages.Message(
+                Translator.Translate("AutoSellerPlus_DeleteFailed").ToString(),
+                MessageTypeDefOf.RejectInput);
         }
     }
 }
