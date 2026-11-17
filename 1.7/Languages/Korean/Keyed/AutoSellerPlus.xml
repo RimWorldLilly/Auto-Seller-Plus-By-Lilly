@@ -19,4 +19,10 @@
   <AutoSellerPlus_LoadFailed>규칙 프리셋을 불러오지 못했습니다. 로그를 확인하세요.</AutoSellerPlus_LoadFailed>
   <AutoSellerPlus_ComponentUnavailable>현재 Auto Seller 규칙 목록을 사용할 수 없습니다.</AutoSellerPlus_ComponentUnavailable>
   <AutoSellerPlus_InvalidRule>프리셋에 현재 Auto Seller 규칙 목록과 호환되지 않는 규칙이 있습니다.</AutoSellerPlus_InvalidRule>
+  <AutoSellerPlus_SavedPresets>저장된 프리셋</AutoSellerPlus_SavedPresets>
+  <AutoSellerPlus_Overwrite>덮어쓰기</AutoSellerPlus_Overwrite>
+  <AutoSellerPlus_Delete>삭제</AutoSellerPlus_Delete>
+  <AutoSellerPlus_DeleteTitle>프리셋 삭제</AutoSellerPlus_DeleteTitle>
+  <AutoSellerPlus_DeleteConfirm>"{0}" 프리셋을 삭제할까요? 삭제한 파일은 복구할 수 없습니다.</AutoSellerPlus_DeleteConfirm>
+  <AutoSellerPlus_DeleteFailed>프리셋을 삭제하지 못했습니다. 로그를 확인하세요.</AutoSellerPlus_DeleteFailed>
 </LanguageData>
