@@ -51,7 +51,7 @@ internal static class RWAutoSellCategoryCleanupPatch
             if (type.Name == "ASCatListBox")
             {
                 foreach (MethodInfo method in type.GetMethods(
-                             BindingFlags.Instance | BindingFlags.Static |
+                             BindingFlags.Instance |
                              BindingFlags.Public | BindingFlags.NonPublic |
                              BindingFlags.DeclaredOnly))
                 {
@@ -154,9 +154,9 @@ internal static class RWAutoSellCategoryCleanupPatch
 
                 // Traverse only RWAutoSell-owned helper objects. This avoids walking
                 // the game's Def database, maps, windows, or unrelated mod objects.
-                if (depth < 4 &&
-                    value.GetType().Assembly.GetName().Name == TargetAssemblyName &&
-                    !value.GetType().IsValueType)
+                if (depth < 2 &&
+                    value.GetType().Name == "ASCatListBox" &&
+                    value.GetType().Assembly.GetName().Name == TargetAssemblyName)
                 {
                     ScanObject(value, value.GetType(), depth + 1, visited, ref removed);
                 }
@@ -197,11 +197,16 @@ internal static class RWAutoSellCategoryCleanupPatch
     private static int CleanCategoryList(string fieldName, Type fieldType, IList list)
     {
         Type? elementType = GetListElementType(fieldType);
-        bool containsCategoryDefs = elementType is not null &&
+        bool categoryFieldName =
+            fieldName.Contains("Cat", StringComparison.OrdinalIgnoreCase) ||
+            fieldName.Contains("DefList", StringComparison.OrdinalIgnoreCase) ||
+            fieldName.Equals("selecteddef", StringComparison.OrdinalIgnoreCase) ||
+            fieldName.Equals("selecteddefs", StringComparison.OrdinalIgnoreCase);
+
+        bool containsCategoryDefs = categoryFieldName &&
+                                    elementType is not null &&
                                     typeof(ThingCategoryDef).IsAssignableFrom(elementType);
-        bool containsDefNames = elementType == typeof(string) &&
-                                (fieldName.Contains("Def", StringComparison.OrdinalIgnoreCase) ||
-                                 fieldName.Contains("Cat", StringComparison.OrdinalIgnoreCase));
+        bool containsDefNames = categoryFieldName && elementType == typeof(string);
 
         if (!containsCategoryDefs && !containsDefNames)
         {
