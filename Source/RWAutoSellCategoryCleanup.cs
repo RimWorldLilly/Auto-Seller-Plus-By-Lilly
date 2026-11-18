@@ -184,12 +184,6 @@ internal static class RWAutoSellCategoryCleanupPatch
                 {
                     removed += CleanCategoryList(field.Name, field.FieldType, list);
                 }
-                else if (value is not null &&
-                         value.GetType().Assembly.GetName().Name == TargetAssemblyName &&
-                         !value.GetType().IsValueType)
-                {
-                    ScanObject(value, value.GetType(), 1, visited, ref removed);
-                }
             }
         }
     }
