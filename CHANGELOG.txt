@@ -1,10 +1,16 @@
 v1.3
 
-- Show sell and buy thresholds next to each auto-sell rule name.
+- Add the required Reflection.Emit import for the Harmony transpiler.
 
 ----------------------------------------
 
 v1.2
+
+- Show sell and buy thresholds next to each auto-sell rule name.
+
+----------------------------------------
+
+v1.1.1
 
 - Cleaned up the mod description and clarified the named rule preset feature.
 
