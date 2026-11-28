@@ -530,3 +530,47 @@ internal sealed class RulePresetLoadDialog : Window
         Widgets.EndScrollView();
     }
 }
+
+[HarmonyPatch(typeof(RuleRowUI), nameof(RuleRowUI.DrawRow))]
+internal static class AutoSellerPlusRuleRowLabelPatch
+{
+    private static readonly MethodInfo ObjectToString =
+        typeof(object).GetMethod(nameof(ToString), Type.EmptyTypes)
+        ?? throw new MissingMethodException(typeof(object).FullName, nameof(ToString));
+
+    private static readonly MethodInfo FormatRuleLabel =
+        typeof(AutoSellerPlusRuleRowLabelPatch).GetMethod(
+            nameof(GetRuleDisplayLabel),
+            BindingFlags.Static | BindingFlags.NonPublic)
+        ?? throw new MissingMethodException(
+            typeof(AutoSellerPlusRuleRowLabelPatch).FullName,
+            nameof(GetRuleDisplayLabel));
+
+    [HarmonyTranspiler]
+    private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        foreach (CodeInstruction instruction in instructions)
+        {
+            if (instruction.opcode == OpCodes.Callvirt &&
+                instruction.operand is MethodInfo method &&
+                method == ObjectToString)
+            {
+                instruction.opcode = OpCodes.Call;
+                instruction.operand = FormatRuleLabel;
+            }
+
+            yield return instruction;
+        }
+    }
+
+    private static string GetRuleDisplayLabel(object rule)
+    {
+        if (rule is ASRule autoSellRule)
+        {
+            return $"{rule} ( {autoSellRule.SellCount} / {autoSellRule.BuyPoint} )";
+        }
+
+        return rule?.ToString() ?? string.Empty;
+    }
+}
+
