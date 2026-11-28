@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RWASWidgets", "RWASWidgets\RWASWidgets.csproj", "{B21E5311-C2A3-4FA7-ABA9-1D440B5AABCF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B21E5311-C2A3-4FA7-ABA9-1D440B5AABCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B21E5311-C2A3-4FA7-ABA9-1D440B5AABCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B21E5311-C2A3-4FA7-ABA9-1D440B5AABCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B21E5311-C2A3-4FA7-ABA9-1D440B5AABCF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
